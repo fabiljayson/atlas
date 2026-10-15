@@ -122,7 +122,7 @@ export default function StudioPage() {
                   onClick={() => setKind(k)}
                   className={cn(
                     "flex-1 rounded py-2 text-[12.5px] font-medium transition-colors",
-                    kind === k ? "bg-indigo-soft text-ink" : "text-ink-faint hover:text-ink-dim",
+                    kind === k ? "bg-indigo-tint text-ink" : "text-ink-faint hover:text-ink-dim",
                   )}
                 >
                   {k === "post" ? "Post" : "Newsletter"}
@@ -140,7 +140,7 @@ export default function StudioPage() {
                     className={cn(
                       "flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors",
                       style === s.id
-                        ? "border-indigo bg-indigo-soft"
+                        ? "border-indigo bg-indigo-tint"
                         : "border-line-strong hover:border-indigo",
                     )}
                   >

@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.4.0 — Dark landing redesign + Google sync (October 2026)
+
+### Added
+- **Landing page redesign** (`src/app/page.tsx` now a server component with `metadata`;
+  sections in `src/components/landing/`): sticky nav with anchor links, hero with labeled
+  illustrative dashboard preview, problem framing, five pillar blocks, three-step story,
+  chief-of-staff section (illustrative chat, provider/rules honesty note), evening
+  check-in section, accurate security section, final CTA, footer. No fake testimonials,
+  logos, or stats; previews carry an "Illustrative preview" label; skip-to-content link
+  kept and restored to `<main id="main-content">`.
+- **Google Tasks and Drive sync.** `fetchGoogleTasks` + `fetchDriveFiles` merge into
+  second-brain files and objectives tasks (`mergeSyncedTasks`), scopes
+  `tasks.readonly` + `drive.readonly`, resilient `syncGoogleIntoState` (per-source
+  `allSettled`, per-source `SyncOutcome` reported by `POST /api/sync`).
+- **Logo assets**: `public/logo.png` + `src/app/icon.png` (favicon), `LogoMark` component
+  used in sidebar, mobile bar, landing header, auth and the `/app` fallback; old
+  `favicon.ico` removed.
+- Dashboard "Connect Google" / "Disconnect" controls (Today page; `googleConnected`
+  flows from `app/app/layout.tsx`).
+
+### Changed
+- **Theme flipped dark-first** (tokens renamed nothing, values changed in `globals.css`
+  `@theme`): bg `#0b0d16`, panel `#131626`, indigo `#5d60ee`, dark shadows,
+  `color-scheme: dark`, dark `::selection` and glass surfaces. Whole app follows.
+- Contrast fixes from the flip (see `docs/ACCESSIBILITY.md`): `ink-faint` → #838aad;
+  selected chips moved `bg-indigo-soft` → new `indigo-tint` #23264a (light-on-light
+  otherwise); `critical` → #dc2626 with new `critical-deep` #b91c1c destructive hover
+  (white text on the delete button was 3.76).
+- `DESIGN.md` and `docs/ACCESSIBILITY.md` updated to the dark palette.
+
+### Removed
+- **All mock dashboard data.** `src/lib/data.ts` deleted; store/db defaults are empty;
+  chief chat seeds only its `WELCOME_MESSAGE` and takes `checkins` in `ChiefContext`
+  (rules + LLM paths); dashboard empty states are real. `atlas.db` user state wiped.
+
 ## 0.3.0 — Trust & compliance pass (October 2026)
 
 Legal transparency, privacy controls, ethical UX and accessibility work per the compliance

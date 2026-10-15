@@ -194,7 +194,7 @@ function DeleteDialog({
           </Button>
           <Button
             variant="primary"
-            className="bg-critical hover:bg-critical-ink"
+            className="bg-critical hover:bg-critical-deep"
             onClick={submit}
             disabled={loading || !password || !acknowledged}
           >

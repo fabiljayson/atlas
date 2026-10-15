@@ -51,7 +51,7 @@ export default function BrainPage() {
                   onClick={() => setFolder(f)}
                   className={cn(
                     "mb-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] transition-colors",
-                    active ? "bg-indigo-soft text-ink" : "text-ink-dim hover:text-ink",
+                    active ? "bg-indigo-tint text-ink" : "text-ink-dim hover:text-ink",
                   )}
                 >
                   <FolderSimple
@@ -83,7 +83,7 @@ export default function BrainPage() {
                     onClick={() => setSelectedId(f.id)}
                     className={cn(
                       "block w-full px-4 py-3 text-left transition-colors",
-                      selected?.id === f.id ? "bg-indigo-soft" : "hover:bg-panel-2/60",
+                      selected?.id === f.id ? "bg-indigo-tint" : "hover:bg-panel-2/60",
                     )}
                   >
                     <div className="flex items-center gap-3">

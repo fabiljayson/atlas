@@ -112,7 +112,7 @@ export function Shell({
                 className={cn(
                   "mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] transition-colors",
                   active
-                    ? "bg-indigo-soft text-ink"
+                    ? "bg-indigo-tint text-ink"
                     : "text-ink-dim hover:bg-panel-2/60 hover:text-ink",
                 )}
               >
@@ -259,7 +259,7 @@ export function Shell({
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "flex shrink-0 items-center gap-2 rounded px-3 py-2 text-[12px] transition-colors",
-                    active ? "bg-indigo-soft text-ink" : "text-ink-dim",
+                    active ? "bg-indigo-tint text-ink" : "text-ink-dim",
                   )}
                 >
                   <Icon size={14} />

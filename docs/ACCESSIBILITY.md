@@ -1,30 +1,39 @@
 # Accessibility
 
 Audit findings and results, October 2026. Target: WCAG 2.2 AA where practical, keeping
-Atlas's light indigo system. Method used here is code review plus computed contrast
+Atlas's dark indigo system. Method used here is code review plus computed contrast
 ratios and scripted checks — **not** an automated axe/Lighthouse run or a screen-reader
 session; that is listed as follow-up work below.
 
 ## Contrast (computed)
 
-Measured with the WCAG relative-luminance formula against every surface the theme composes.
+Measured with the WCAG relative-luminance formula against every surface the theme composes
+(`bg` #0b0d16, `panel` #131626, `panel-2` #1a1e31).
 
 | Foreground | Background | Ratio | Result |
 |---|---|---|---|
-| `ink` #1e1b4b | `bg` #eef2ff | 14.3 | Pass AA (any size) |
-| `ink-dim` #4c4a73 | `bg` #eef2ff | 7.4 | Pass |
-| `ink-faint` #5c5b85 | `bg` #eef2ff | 5.7 | Pass, but… |
-| `ink-faint` #5c5b85 | `indigo-soft` #c7d2fe | 4.28 | Fail (fixed below) |
-| `ink-faint` (new) #54537b | every surface incl. `indigo-soft` | 4.85–7.2 | Pass everywhere |
-| white on `indigo` #4f46e5 | buttons, primary CTAs | 6.3 | Pass |
-| white on `critical` #dc2626 | destructive delete button | 4.8 | Pass |
-| `critical-ink` #b91c1c | `critical/10` on bg | 5.8 | Pass |
-| `urgent-ink` #92400e | badges on bg | 6.3 | Pass |
-| focus outline `indigo` on `bg` | outline color | 5.6 | Pass (3:1 required) |
+| `ink` #edf0fb | `bg` #0b0d16 | 17.0 | Pass AA (any size) |
+| `ink-dim` #aab0cc | `bg` / `panel` | 9.0 / 8.4 | Pass |
+| `ink-faint` #838aad | `bg` / `panel` / `panel-2` | 5.7 / 5.3 / 4.9 | Pass everywhere |
+| white on `indigo` #5d60ee | buttons, primary CTAs, chat bubbles | 4.80 | Pass |
+| white on `critical` #dc2626 | destructive delete button | 4.83 | Pass |
+| white on `critical-deep` #b91c1c | destructive button hover | 6.47 | Pass |
+| `critical-ink` #fca5a5 | `critical/10` on panel | ~9.4 | Pass |
+| `urgent-ink` #fcd34d | badges on bg / panel | 13.4 / 12.4 | Pass |
+| `good-ink` #86efac | badges on bg / panel | 13.8 / 12.8 | Pass |
+| `ink` / `ink-dim` on `indigo-tint` #23264a | selected nav, tabs, file rows | 12.8 / 6.8 | Pass |
+| focus outline `indigo` #5d60ee on `bg` / `panel` | outline color | 4.0 / 3.7 | Pass (3:1 required) |
 
-**Change made:** `--color-ink-faint` darkened #5c5b85 → #54537b (worst case 5.7 → 6.5 on
-`bg`; the failing `indigo-soft` surface goes 4.28 → 4.85). Still lighter than `ink-dim`,
-so the hierarchy survives.
+**Change made during the dark redesign:** three pairings inherited from the light theme
+failed on dark and were fixed:
+
+1. `ink-faint` was #7d84a6 (4.49 on `panel-2`, just under 4.5) → lightened to #838aad.
+2. Selected chips used `bg-indigo-soft` with `text-ink` (1.88, light-on-light) → chips now
+   use the new `indigo-tint` #23264a surface; `indigo-soft` #a9abf6 stays an accent-text
+   token only and is never a background under light text.
+3. `critical` became #dc2626 so white button text passes (the previous #ef4444 was 3.76);
+   the destructive button's hover moved to the new `critical-deep` #b91c1c (#fca5a5 would
+   have failed under white text).
 
 Urgency levels are never color-only: `UrgencyBadge` always carries its level as text
 (critical / high / normal / low) plus a dot, so the same information is available

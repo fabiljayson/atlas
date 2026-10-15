@@ -30,12 +30,14 @@
   --color-line-strong: #3d4463;
   --color-ink: #edf0fb;
   --color-ink-dim: #aab0cc;
-  --color-ink-faint: #7d84a6;
+  --color-ink-faint: #838aad;
   --color-indigo: #5d60ee;
   --color-indigo-deep: #4749c9;
   --color-indigo-soft: #a9abf6;
-  --color-critical: #ef4444;
+  --color-indigo-tint: #23264a;
+  --color-critical: #dc2626;
   --color-critical-ink: #fca5a5;
+  --color-critical-deep: #b91c1c;
   --color-urgent: #f59e0b;
   --color-urgent-ink: #fcd34d;
   --color-good: #22c55e;

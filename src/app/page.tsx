@@ -19,8 +19,14 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <div className="min-h-dvh">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-indigo focus:px-3 focus:py-2 focus:text-[13px] focus:font-medium focus:text-white"
+      >
+        Skip to content
+      </a>
       <Nav />
-      <main>
+      <main id="main-content">
         <Hero />
         <Problem />
         <Pillars />

@@ -190,6 +190,8 @@ Use semantic tokens first. Raw values from frontmatter are source values, not pe
 - Text: #edf0fb.
 - Border: #3d4463.
 - Success, warning, and danger are semantic states. Pair them with labels, icons, or position; never rely on color alone.
+- `indigo-tint` #23264a: selected-chip surface (nav items, tabs, active file rows). `indigo-soft` #a9abf6 is accent text only — never a background under light text.
+- `critical-deep` #b91c1c: hover/pressed state for destructive actions on `critical` #dc2626.
 - This is a dark-only theme. Do not introduce light surfaces or cream palettes.
 - Do not apply one warm/cream/brown palette across the entire page without contrast, hierarchy, and content anchors.
 
