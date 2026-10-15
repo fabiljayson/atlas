@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { LogoMark } from "./Logo";
 
 export function AuthShell({
   title,
@@ -16,34 +17,32 @@ export function AuthShell({
   footer: React.ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden px-4 py-10">
+      <div className="relative flex min-h-dvh items-center justify-center overflow-hidden px-4 py-12">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(600px 320px at 50% -10%, rgba(79,70,229,0.16), transparent 70%)",
+            "radial-gradient(600px 320px at 50% -10%, color-mix(in srgb, var(--color-indigo) 16%, transparent), transparent 70%)",
         }}
       />
       <div className="anim-fade-up relative w-full max-w-[400px]">
         <Link
           href="/"
-          className="mb-6 flex items-center justify-center gap-2.5"
+          className="mb-6 flex items-center justify-center gap-3"
           aria-label="Atlas home"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-deep text-[15px] font-semibold text-white">
-            A
-          </span>
+          <LogoMark size={32} className="h-8 w-8" />
           <span className="text-[15px] font-semibold tracking-tight text-ink">Atlas</span>
         </Link>
 
-        <div className="rounded-2xl border border-line bg-panel p-6 shadow-[0_24px_60px_rgba(0,0,0,0.45)]">
+        <div className="rounded-xl border border-line bg-panel p-6 shadow-card">
           <h1 className="text-lg font-semibold tracking-tight text-ink">{title}</h1>
           <p className="mt-1 text-[13px] text-ink-dim">{subtitle}</p>
-          <div className="mt-5">{children}</div>
+          <div className="mt-6">{children}</div>
         </div>
 
-        <p className="mt-5 text-center text-[13px] text-ink-dim">{footer}</p>
+        <p className="mt-6 text-center text-[13px] text-ink-dim">{footer}</p>
       </div>
     </div>
   );
@@ -52,7 +51,7 @@ export function AuthShell({
 export function AuthError({ error }: { error: string | null }) {
   if (!error) return null;
   return (
-    <p className="rounded-lg border border-[#3a2230] bg-[#1d1220] px-3 py-2 text-[12.5px] text-critical">
+    <p className="rounded-lg border border-critical/30 bg-critical/10 px-3 py-2 text-[12.5px] text-critical-ink">
       {error}
     </p>
   );

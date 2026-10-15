@@ -26,6 +26,10 @@ function buildUserPrompt(message: string, ctx: ChiefContext): string {
     .slice(0, 30)
     .map((f) => `- ${f.name} (${f.folder}): ${f.summary.slice(0, 160)}`)
     .join("\n");
+  const checkins = ctx.checkins
+    .slice(0, 3)
+    .map((c) => `- Worked: ${c.worked} | Stuck: ${c.stuck} | Tomorrow: ${c.tomorrow}`)
+    .join("\n");
 
   return [
     "TASKS:",
@@ -36,6 +40,9 @@ function buildUserPrompt(message: string, ctx: ChiefContext): string {
     "",
     "FILES:",
     files || "(none)",
+    "",
+    "RECENT CHECK-INS:",
+    checkins || "(none)",
     "",
     `MESSAGE FROM USER: ${message}`,
   ].join("\n");

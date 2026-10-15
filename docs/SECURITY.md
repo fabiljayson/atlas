@@ -31,6 +31,14 @@ This document describes how Atlas protects accounts today and what remains for a
 1. **`src/proxy.ts`** — pre-render gate. `/app/*` without a session cookie receives a hard `307` to `/login` before any dashboard HTML exists.
 2. **`app/app/layout.tsx`** — validates the token against the database on every request (streamed inside `Suspense`). Stale or forged cookies are rejected even if a cookie is present.
 
+### Account deletion
+
+- `POST /api/account/delete` requires a **valid session and the current password** (reauthentication) before anything is removed, so a hijacked tab or stray click cannot erase an account. The settings UI also demands an explicit acknowledgment checkbox in a dialog that spells out every consequence first.
+- Reauthentication attempts are rate limited like login, in **separate buckets** (`delete:email:*`, `delete:ip:*`) so abuse of one flow cannot lock the other.
+- No second copy survives: `deleteUserAccount` (in `lib/db.ts`) removes `sessions`, `user_state`, `google_tokens` and the `users` row in a single transaction, which revokes **every session on every device** because validation is DB-backed per request.
+- The settings page re-checks the session server-side inside a Suspense boundary (cacheComponents requirement) and returns null renders for invalid sessions.
+- Deletion is covered by tests: `tests/account-deletion.test.ts` runs the real SQLite logic through node:test against a throwaway database.
+
 ### Credential handling
 
 - Login failures return the same message for unknown email and wrong password (`Invalid email or password.`) to avoid account enumeration; rate-limit responses do not reveal whether the account exists (the same `429` fires on the per-IP bucket).
@@ -38,7 +46,6 @@ This document describes how Atlas protects accounts today and what remains for a
 - All input is validated server-side in the route handlers (email shape, name length, password length) before touching the database.
 - All SQL uses **prepared statements** (no string interpolation), so inputs cannot inject SQL.
 - `GET/PUT /api/state` and `POST /api/chief` require a valid session; the state endpoint enforces a slice whitelist, array-shaped values and a 2 MB cap, so a client cannot write arbitrary keys or oversized blobs.
-
 ### AI chief of staff
 
 - The LLM is called server-side only (`src/lib/askChief.ts`, reached via session-gated `POST /api/chief`); provider keys (Gemini, OpenAI, Anthropic) live in environment variables and never reach the browser. The Gemini key is sent as an `x-goog-api-key` header, never in a URL or client code.
@@ -61,8 +68,9 @@ This document describes how Atlas protects accounts today and what remains for a
 | Signup reveals existing accounts (409) | Move to neutral "check your email" flow when mail sending exists |
 | No CSRF token (relies on SameSite) | Add origin checks if cookie policy ever changes |
 | No audit log of logins/sessions | Append-only auth events table |
+| Backup retention policy for `atlas.db` is undefined | Document operator backup/deletion limits before production (tracked in docs/LEGAL_COMPLIANCE.md) |
 | No CSP / HSTS headers in app config | Configure at proxy or via `headers()` in `next.config.ts` |
-| Gmail/Calendar OAuth not wired | Needs real `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`; scopes kept read-only |
+| Google OAuth needs credentials | Wired end to end (`gmail.readonly`, `calendar.readonly`, `tasks.readonly`, `drive.readonly`); add `GOOGLE_CLIENT_SECRET` and reconnect to grant scopes |
 | Dev runs plain HTTP | Expected locally; production must terminate TLS upstream |
 
 ## Reporting a vulnerability

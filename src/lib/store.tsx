@@ -10,17 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  CHECKINS,
-  EVENTS,
-  FILES,
-  MAILS,
-  NOTIFICATIONS,
-  OBJECTIVES,
-  TASKS,
-  WELCOME_CHAT,
-} from "./data";
-import { getChiefReply, makeMessage } from "./chief";
+import { getChiefReply, makeMessage, WELCOME_MESSAGE } from "./chief";
 import type {
   AppNotification,
   BrainFile,
@@ -69,7 +59,6 @@ interface Store {
     keyResults: string[];
   }) => void;
   toggleKeyResult: (objectiveId: string, keyResultId: string) => void;
-  arrangeInbox: () => Promise<void>;
   sendChat: (text: string) => Promise<void>;
   generateDraft: (input: {
     kind: "post" | "newsletter";
@@ -93,18 +82,16 @@ export function StoreProvider({
   initialState?: PersistedState;
   googleConnected?: boolean;
 }) {
-  const [mails, setMails] = useState<Mail[]>(initialState?.mails ?? MAILS);
-  const [events, setEvents] = useState<CalendarEvent[]>(initialState?.events ?? EVENTS);
-  const [tasks, setTasks] = useState<Task[]>(initialState?.tasks ?? TASKS);
-  const [objectives, setObjectives] = useState<Objective[]>(
-    initialState?.objectives ?? OBJECTIVES,
-  );
-  const [files, setFiles] = useState<BrainFile[]>(initialState?.files ?? FILES);
-  const [checkins, setCheckins] = useState<CheckIn[]>(initialState?.checkins ?? CHECKINS);
+  const [mails, setMails] = useState<Mail[]>(initialState?.mails ?? []);
+  const [events, setEvents] = useState<CalendarEvent[]>(initialState?.events ?? []);
+  const [tasks, setTasks] = useState<Task[]>(initialState?.tasks ?? []);
+  const [objectives, setObjectives] = useState<Objective[]>(initialState?.objectives ?? []);
+  const [files, setFiles] = useState<BrainFile[]>(initialState?.files ?? []);
+  const [checkins, setCheckins] = useState<CheckIn[]>(initialState?.checkins ?? []);
   const [notifications, setNotifications] = useState<AppNotification[]>(
-    initialState?.notifications ?? NOTIFICATIONS,
+    initialState?.notifications ?? [],
   );
-  const [chat, setChat] = useState<ChatMessage[]>(initialState?.chat ?? WELCOME_CHAT);
+  const [chat, setChat] = useState<ChatMessage[]>(initialState?.chat ?? [WELCOME_MESSAGE]);
   const [drafts, setDrafts] = useState<ContentDraft[]>(initialState?.drafts ?? []);
   const [checkinOpen, setCheckinOpen] = useState(false);
   const [chatThinking, setChatThinking] = useState(false);
@@ -206,16 +193,29 @@ export function StoreProvider({
         connected?: boolean;
         mails?: Mail[];
         events?: CalendarEvent[];
+        tasks?: Task[];
+        files?: BrainFile[];
         error?: string;
       };
       if (!res.ok) return { ok: false, message: data.error ?? "Sync failed. Try again shortly." };
-      if (!data.connected) return { ok: false, disconnected: true };
-      setMails(data.mails ?? []);
-      setEvents(data.events ?? []);
+      if (!data.connected) {
+        setGoogleConnected(false);
+        return { ok: false, disconnected: true };
+      }
+      if (data.mails) setMails(data.mails);
+      if (data.events) setEvents(data.events);
+      if (data.tasks) setTasks(data.tasks);
+      if (data.files) setFiles(data.files);
+      setGoogleConnected(true);
       return { ok: true };
     } catch {
       return { ok: false, message: "Sync failed. Check your connection." };
     }
+  }, []);
+
+  const disconnectGoogle = useCallback(async () => {
+    await fetch("/api/google/disconnect", { method: "DELETE" }).catch(() => undefined);
+    setGoogleConnected(false);
   }, []);
 
   const markAllNotificationsRead = useCallback(() => {
@@ -262,30 +262,6 @@ export function StoreProvider({
     );
   }, []);
 
-  const arrangeInbox = useCallback(async () => {
-    const mapping: Record<string, string> = {
-      "scan-001.pdf": "Finance",
-      "img_2210.png": "Brand",
-      "doc-tax-draft.pdf": "Finance",
-      "offsite-agenda.md": "Notes",
-    };
-    for (const [name, folder] of Object.entries(mapping)) {
-      await new Promise((r) => setTimeout(r, 450));
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.name === name
-            ? { ...f, folder, tags: f.tags.filter((t) => t !== "unsorted") }
-            : f,
-        ),
-      );
-    }
-    pushNotification({
-      kind: "files",
-      title: "Files arranged",
-      body: "4 files filed into Finance, Brand and Notes.",
-    });
-  }, [pushNotification]);
-
   const sendChat = useCallback(
     async (text: string) => {
       setChat((prev) => [...prev, makeMessage("user", text)]);
@@ -296,20 +272,20 @@ export function StoreProvider({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: text,
-            ctx: { tasks, objectives, files },
+            ctx: { tasks, objectives, files, checkins },
           }),
         });
         const data = (await res.json()) as { text?: string; sources?: string[] };
         if (!res.ok || !data.text) throw new Error("chief failed");
         setChat((prev) => [...prev, makeMessage("chief", data.text!, data.sources)]);
       } catch {
-        const reply = getChiefReply(text, { tasks, objectives, files });
+        const reply = getChiefReply(text, { tasks, objectives, files, checkins });
         setChat((prev) => [...prev, makeMessage("chief", reply.text, reply.sources)]);
       } finally {
         setChatThinking(false);
       }
     },
-    [tasks, objectives, files],
+    [tasks, objectives, files, checkins],
   );
 
   const generateDraft = useCallback<Store["generateDraft"]>(
@@ -359,17 +335,18 @@ export function StoreProvider({
       drafts,
       checkinOpen,
       chatThinking,
+      googleConnected,
       openCheckin,
       closeCheckin,
       submitCheckin,
       toggleTask,
       markMailRead,
       syncGoogle,
+      disconnectGoogle,
       markAllNotificationsRead,
       pushNotification,
       addObjective,
       toggleKeyResult,
-      arrangeInbox,
       sendChat,
       generateDraft,
     }),
@@ -385,17 +362,18 @@ export function StoreProvider({
       drafts,
       checkinOpen,
       chatThinking,
+      googleConnected,
       openCheckin,
       closeCheckin,
       submitCheckin,
       toggleTask,
       markMailRead,
       syncGoogle,
+      disconnectGoogle,
       markAllNotificationsRead,
       pushNotification,
       addObjective,
       toggleKeyResult,
-      arrangeInbox,
       sendChat,
       generateDraft,
     ],

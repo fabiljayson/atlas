@@ -72,7 +72,15 @@ function ObjectivesInner() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_440px]">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {objectives.map((o) => {
+          {objectives.length === 0 ? (
+            <Panel className="px-4 py-8 sm:col-span-2">
+              <p className="text-[13px] text-ink-dim">
+                No objectives yet. Create your first one and your chief of staff will
+                track it.
+              </p>
+            </Panel>
+          ) : (
+            objectives.map((o) => {
             const done = o.keyResults.filter((k) => k.done).length;
             const pct = o.keyResults.length
               ? Math.round((done / o.keyResults.length) * 100)
@@ -90,22 +98,22 @@ function ObjectivesInner() {
                   <div className="mt-4 flex items-center gap-2">
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg">
                       <div
-                        className="h-full rounded-full bg-indigo-deep transition-all duration-500"
+                        className="h-full rounded-full bg-indigo transition-all duration-slow"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
                     <span className="font-mono text-[11px] text-ink-dim">{pct}%</span>
                   </div>
 
-                  <ul className="mt-3 space-y-1.5">
+                  <ul className="mt-3 space-y-2">
                     {o.keyResults.map((k) => (
                       <li key={k.id}>
-                        <label className="flex cursor-pointer items-start gap-2.5 text-[12.5px]">
+                        <label className="flex cursor-pointer items-start gap-2 text-[12.5px]">
                           <input
                             type="checkbox"
                             checked={k.done}
                             onChange={() => toggleKeyResult(o.id, k.id)}
-                            className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[#4f46e5]"
+                            className="mt-1 h-3.5 w-3.5 shrink-0 accent-indigo"
                           />
                           <span
                             className={cn(
@@ -120,8 +128,9 @@ function ObjectivesInner() {
                   </ul>
                 </div>
               </Panel>
-            );
-          })}
+              );
+            })
+          )}
         </div>
 
         <Panel className="flex min-h-[560px] flex-col xl:sticky xl:top-20 xl:h-[calc(100dvh-6.5rem)]">

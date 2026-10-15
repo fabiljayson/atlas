@@ -1,6 +1,6 @@
 "use client";
 
-import { type ButtonHTMLAttributes, type ReactNode, useEffect } from "react";
+import { type ButtonHTMLAttributes, type ReactNode, useEffect, useRef } from "react";
 import { X } from "@phosphor-icons/react";
 import type { Urgency } from "@/lib/types";
 
@@ -22,12 +22,12 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-150 active:translate-y-px disabled:opacity-40 disabled:pointer-events-none",
+        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-fast active:translate-y-px disabled:opacity-40 disabled:pointer-events-none",
         size === "sm" ? "h-8 px-3 text-[13px]" : "h-10 px-4 text-sm",
         variant === "primary" &&
-          "bg-indigo-deep text-white hover:bg-[#5b53f0] shadow-[0_1px_0_rgba(255,255,255,0.12)_inset]",
+          "bg-indigo text-white hover:bg-indigo-deep shadow-[0_1px_0_rgba(255,255,255,0.16)_inset]",
         variant === "outline" &&
-          "border border-line bg-panel text-ink hover:border-[#2a3358] hover:bg-panel-2",
+          "border border-line-strong bg-panel text-ink hover:border-indigo hover:bg-panel-2",
         variant === "ghost" && "text-ink-dim hover:text-ink hover:bg-panel-2",
         className,
       )}
@@ -37,9 +37,9 @@ export function Button({
 }
 
 const urgencyStyles: Record<Urgency, string> = {
-  critical: "text-critical border-[#3a2230] bg-[#1d1220]",
-  high: "text-urgent border-[#3a2f1e] bg-[#1c1710]",
-  normal: "text-indigo border-[#2a2f55] bg-[#161a33]",
+  critical: "text-critical-ink border-critical/30 bg-critical/10",
+  high: "text-urgent-ink border-urgent/30 bg-urgent/10",
+  normal: "text-indigo border-indigo/30 bg-indigo/10",
   low: "text-ink-faint border-line bg-panel",
 };
 
@@ -47,7 +47,7 @@ export function UrgencyBadge({ level, label }: { level: Urgency; label?: string 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded border px-1.5 py-0.5 font-mono text-[10px] tracking-wide uppercase",
+        "inline-flex items-center gap-2 rounded border px-2 py-1 font-mono text-[10px] tracking-wide uppercase",
         urgencyStyles[level],
       )}
     >
@@ -67,7 +67,7 @@ export function Panel({
   return (
     <section
       className={cn(
-        "rounded-xl border border-line bg-panel/80 backdrop-blur-sm",
+        "glass rounded-xl border border-line",
         className,
       )}
     >
@@ -106,7 +106,7 @@ export function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="block gap-1.5">
+    <label className="block gap-2">
       <span className="text-[12px] font-medium text-ink-dim">{label}</span>
       {children}
       {hint ? <span className="mt-1 block text-[11px] text-ink-faint">{hint}</span> : null}
@@ -115,7 +115,7 @@ export function Field({
 }
 
 export const inputClass =
-  "w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-[#35407a] focus:outline-none transition-colors";
+  "w-full rounded-lg border border-line-strong bg-bg px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-indigo transition-colors";
 
 export function Modal({
   open,
@@ -130,24 +130,59 @@ export function Modal({
   children: ReactNode;
   width?: string;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onCloseRef.current();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusables = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusables?.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      previousFocusRef.current?.focus();
+    };
+  }, [open]);
 
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 p-4 backdrop-blur-sm sm:items-center"
       onClick={onClose}
       role="presentation"
     >
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         className={cn(
-          "anim-fade-up w-full rounded-2xl border border-line bg-panel shadow-[0_24px_60px_rgba(0,0,0,0.5)]",
+          "anim-fade-up w-full rounded-xl border border-line bg-panel shadow-modal focus:outline-none",
           width,
         )}
         onClick={(e) => e.stopPropagation()}
@@ -155,17 +190,17 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
       >
-        <header className="flex items-center justify-between border-b border-line-soft px-5 py-4">
+        <header className="flex items-center justify-between border-b border-line-soft px-6 py-4">
           <h2 className="text-[15px] font-medium text-ink">{title}</h2>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="rounded-md p-1 text-ink-faint transition-colors hover:bg-panel-2 hover:text-ink"
+            className="rounded p-1 text-ink-faint transition-colors hover:bg-panel-2 hover:text-ink"
           >
             <X size={16} />
           </button>
         </header>
-        <div className="px-5 py-5">{children}</div>
+        <div className="px-6 py-6">{children}</div>
       </div>
     </div>
   );

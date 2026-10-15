@@ -9,17 +9,20 @@ import {
   CalendarBlank,
   Cards,
   MagnifyingGlass,
+  Sliders,
   SquaresFour,
   Target,
 } from "@phosphor-icons/react";
 import { useStore } from "@/lib/store";
 import { Button, cn, Modal, Field, inputClass } from "./ui";
+import { LogoMark } from "./Logo";
 
 const NAV = [
   { href: "/app", label: "Today", icon: SquaresFour },
   { href: "/app/brain", label: "Second brain", icon: Brain },
   { href: "/app/studio", label: "Content studio", icon: Cards },
   { href: "/app/objectives", label: "Objectives", icon: Target },
+  { href: "/app/settings", label: "Settings", icon: Sliders },
 ] as const;
 
 export function Shell({
@@ -35,6 +38,8 @@ export function Shell({
   const [bellOpen, setBellOpen] = useState(false);
   const [search, setSearch] = useState("");
   const bellRef = useRef<HTMLDivElement>(null);
+  const bellButtonRef = useRef<HTMLButtonElement>(null);
+  const bellPopoverRef = useRef<HTMLDivElement>(null);
 
   const unread = notifications.filter((n) => !n.read).length;
 
@@ -47,6 +52,19 @@ export function Shell({
     window.addEventListener("mousedown", onClick);
     return () => window.removeEventListener("mousedown", onClick);
   }, []);
+
+  useEffect(() => {
+    if (!bellOpen) return;
+    bellPopoverRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setBellOpen(false);
+        bellButtonRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [bellOpen]);
 
   const title =
     NAV.find((n) => n.href === pathname)?.label ?? "Today";
@@ -66,11 +84,15 @@ export function Shell({
 
   return (
     <div className="flex min-h-dvh">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-line bg-panel/60 backdrop-blur md:flex">
-        <div className="flex items-center gap-2.5 px-5 py-5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-deep font-display text-[15px] font-semibold text-white">
-            A
-          </span>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-indigo focus:px-3 focus:py-2 focus:text-[13px] focus:font-medium focus:text-white"
+      >
+        Skip to content
+      </a>
+      <aside className="glass fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-line md:flex">
+        <div className="flex items-center gap-3 px-6 py-6">
+          <LogoMark size={32} className="h-8 w-8" />
           <div className="leading-tight">
             <div className="text-[13px] font-semibold text-ink">Atlas</div>
             <div className="font-mono text-[10px] tracking-wider text-ink-faint uppercase">
@@ -86,10 +108,11 @@ export function Shell({
               <Link
                 key={href}
                 href={href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "mb-1 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-colors",
+                  "mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] transition-colors",
                   active
-                    ? "bg-panel-2 text-ink"
+                    ? "bg-indigo-soft text-ink"
                     : "text-ink-dim hover:bg-panel-2/60 hover:text-ink",
                 )}
               >
@@ -126,12 +149,10 @@ export function Shell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col md:pl-60">
-        <header className="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur">
+        <header className="glass-bar sticky top-0 z-30 border-b border-line">
           <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
             <div className="flex items-center gap-2 md:hidden">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-deep text-[13px] font-semibold text-white">
-                A
-              </span>
+              <LogoMark size={28} className="h-7 w-7" />
             </div>
             <h1 className="hidden text-[15px] font-medium text-ink md:block">{title}</h1>
 
@@ -146,25 +167,36 @@ export function Shell({
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Ask or search anything…"
                   aria-label="Ask or search"
-                  className="h-9 w-full rounded-lg border border-line bg-panel pl-8 pr-3 text-[13px] text-ink placeholder:text-ink-faint focus:border-[#35407a] focus:outline-none"
+                  className="h-9 w-full rounded-lg border border-line-strong bg-panel pl-8 pr-3 text-[13px] text-ink placeholder:text-ink-faint focus:border-indigo"
                 />
               </div>
             </form>
 
             <div className="relative" ref={bellRef}>
               <button
+                ref={bellButtonRef}
                 onClick={() => setBellOpen((v) => !v)}
-                aria-label="Notifications"
+                aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+                aria-expanded={bellOpen}
+                aria-controls="notifications-popover"
                 className="relative rounded-lg p-2 text-ink-dim transition-colors hover:bg-panel-2 hover:text-ink"
               >
                 <Bell size={17} />
                 {unread > 0 ? (
-                  <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-critical" />
+                  <span
+                    aria-hidden
+                    className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-critical"
+                  />
                 ) : null}
               </button>
 
               {bellOpen ? (
-                <div className="anim-fade-up absolute right-0 z-50 mt-2 w-80 rounded-xl border border-line bg-panel shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
+                <div
+                  ref={bellPopoverRef}
+                  id="notifications-popover"
+                  tabIndex={-1}
+                  className="anim-fade-up absolute right-0 z-50 mt-2 w-80 rounded-xl border border-line bg-panel shadow-popover focus:outline-none"
+                >
                   <div className="flex items-center justify-between border-b border-line-soft px-4 py-3">
                     <span className="text-[13px] font-medium text-ink">Notifications</span>
                     <button
@@ -175,7 +207,12 @@ export function Shell({
                     </button>
                   </div>
                   <ul className="max-h-80 overflow-y-auto">
-                    {notifications.map((n) => (
+                    {notifications.length === 0 ? (
+                      <li className="px-4 py-6 text-[12.5px] text-ink-faint">
+                        Nothing yet. Check-ins and syncs land here.
+                      </li>
+                    ) : (
+                      notifications.map((n) => (
                       <li
                         key={n.id}
                         className={cn(
@@ -187,11 +224,12 @@ export function Shell({
                           <span className="text-[13px] font-medium text-ink">{n.title}</span>
                           <span className="font-mono text-[10px] text-ink-faint">{n.time}</span>
                         </div>
-                        <p className="mt-0.5 text-[12px] leading-relaxed text-ink-dim">
+                        <p className="mt-1 text-[12px] leading-relaxed text-ink-dim">
                           {n.body}
                         </p>
                       </li>
-                    ))}
+                      ))
+                    )}
                   </ul>
                   <div className="border-t border-line-soft p-2">
                     <Button
@@ -218,9 +256,10 @@ export function Shell({
                 <Link
                   key={href}
                   href={href}
+                  aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] transition-colors",
-                    active ? "bg-panel-2 text-ink" : "text-ink-dim",
+                    "flex shrink-0 items-center gap-2 rounded px-3 py-2 text-[12px] transition-colors",
+                    active ? "bg-indigo-soft text-ink" : "text-ink-dim",
                   )}
                 >
                   <Icon size={14} />
@@ -231,7 +270,7 @@ export function Shell({
           </nav>
         </header>
 
-        <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
+        <main id="main-content" className="flex-1 px-4 py-6 sm:px-6">{children}</main>
       </div>
 
       <CheckInModal />
@@ -252,7 +291,7 @@ function CheckInModal() {
       title="Evening check-in"
       width="max-w-xl"
     >
-      <p className="mb-5 text-[13px] leading-relaxed text-ink-dim">
+      <p className="mb-6 text-[13px] leading-relaxed text-ink-dim">
         Two minutes. What worked, what stuck, what tomorrow holds — it lands on your
         dashboard as notifications and tasks.
       </p>

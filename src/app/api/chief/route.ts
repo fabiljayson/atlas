@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => null)) as {
     message?: string;
-    ctx?: { tasks?: unknown; objectives?: unknown; files?: unknown };
+    ctx?: { tasks?: unknown; objectives?: unknown; files?: unknown; checkins?: unknown };
   } | null;
 
   const message = body?.message?.trim() ?? "";
@@ -36,6 +36,7 @@ export async function POST(request: Request) {
       ? (ctxIn!.objectives as ChiefContext["objectives"])
       : [],
     files: isTaskArray(ctxIn?.files) ? (ctxIn!.files as ChiefContext["files"]) : [],
+    checkins: isTaskArray(ctxIn?.checkins) ? (ctxIn!.checkins as ChiefContext["checkins"]) : [],
   };
 
   const reply = await respondToChief(message, ctx);

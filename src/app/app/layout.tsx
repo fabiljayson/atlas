@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getSessionUser, getOrCreateUserState } from "@/lib/db";
+import { getSessionUser, getOrCreateUserState, loadGoogleTokens } from "@/lib/db";
 import { StoreProvider } from "@/lib/store";
 import { Shell } from "@/components/Shell";
+import { LogoMark } from "@/components/Logo";
 
 export const metadata: Metadata = {
   title: "Atlas",
@@ -15,9 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <Suspense
       fallback={
         <div className="flex min-h-dvh items-center justify-center">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-deep text-[16px] font-semibold text-white">
-            A
-          </span>
+          <LogoMark size={36} className="h-9 w-9" />
         </div>
       }
     >
@@ -34,9 +33,10 @@ async function AuthedShell({ children }: { children: React.ReactNode }) {
   if (!user) redirect("/login");
 
   const state = getOrCreateUserState(user.id);
+  const googleConnected = loadGoogleTokens(user.id) !== null;
 
   return (
-    <StoreProvider initialState={state}>
+    <StoreProvider initialState={state} googleConnected={googleConnected}>
       <Shell user={user}>{children}</Shell>
     </StoreProvider>
   );

@@ -22,22 +22,36 @@
 }
 
 @theme {
-  --color-bg: #0a0d17;
-  --color-panel: #101527;
-  --color-panel-2: #151b33;
-  --color-line: #1e2542;
-  --color-line-soft: #171d36;
-  --color-ink: #e7eaf4;
-  --color-ink-dim: #98a0bd;
-  --color-ink-faint: #7d86aa;
-  --color-indigo: #818cf8;
-  --color-indigo-deep: #4f46e5;
-  --color-critical: #e87c86;
-  --color-urgent: #e8a75c;
-  --color-good: #5ecb9a;
+  --color-bg: #0b0d16;
+  --color-panel: #131626;
+  --color-panel-2: #1a1e31;
+  --color-line: #272c42;
+  --color-line-soft: #1e2235;
+  --color-line-strong: #3d4463;
+  --color-ink: #edf0fb;
+  --color-ink-dim: #aab0cc;
+  --color-ink-faint: #7d84a6;
+  --color-indigo: #5d60ee;
+  --color-indigo-deep: #4749c9;
+  --color-indigo-soft: #a9abf6;
+  --color-critical: #ef4444;
+  --color-critical-ink: #fca5a5;
+  --color-urgent: #f59e0b;
+  --color-urgent-ink: #fcd34d;
+  --color-good: #22c55e;
+  --color-good-ink: #86efac;
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --default-transition-duration: 120ms;
+  --transition-duration-fast: 120ms;
+  --transition-duration-normal: 180ms;
+  --transition-duration-slow: 260ms;
+
+  --shadow-card: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --shadow-popover: 0 20px 50px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.6);
 }
 
 html {
@@ -52,13 +66,30 @@ html {
 }
 
 body {
-  background: var(--color-bg);
+  background:
+    radial-gradient(
+      1000px 560px at 10% -10%,
+      color-mix(in srgb, var(--color-indigo) 12%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      820px 480px at 95% 2%,
+      color-mix(in srgb, var(--color-indigo-deep) 26%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      700px 420px at 50% 108%,
+      color-mix(in srgb, var(--color-indigo) 6%, transparent),
+      transparent 60%
+    ),
+    var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-sans);
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-indigo) 35%, transparent);
+  background-color: var(--color-indigo-soft);
+  color: #14162a;
 }
 
 * {
@@ -69,6 +100,32 @@ body {
 *:focus-visible {
   outline: 2px solid var(--color-indigo);
   outline-offset: 2px;
+}
+
+.glass {
+  background: color-mix(in srgb, var(--color-panel) 78%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.glass-bar {
+  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: inset 0 -1px 0 var(--color-line);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--color-panel);
+  }
+
+  .glass-bar {
+    background: var(--color-bg);
+  }
 }
 
 @keyframes fade-up {
@@ -93,7 +150,7 @@ body {
 }
 
 .anim-fade-up {
-  animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fade-up 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .anim-pulse-dot {
@@ -105,4 +162,110 @@ body {
   .anim-pulse-dot {
     animation: none;
   }
+}
+
+/* Long-form legal pages: shared prose styling */
+.legal p,
+.legal li {
+  color: var(--color-ink-dim);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.legal p + p {
+  margin-top: 0.6rem;
+}
+
+.legal h2 {
+  margin-top: 2.25rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+
+.legal h2 + p {
+  margin-top: 0.6rem;
+}
+
+.legal h3 {
+  margin-top: 1.5rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.legal ul {
+  margin: 0.6rem 0;
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.legal ul ul {
+  list-style: circle;
+  margin: 0.25rem 0;
+}
+
+.legal li + li {
+  margin-top: 0.35rem;
+}
+
+.legal strong {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.legal em {
+  font-style: italic;
+}
+
+.legal a {
+  color: var(--color-indigo);
+}
+
+.legal a:hover {
+  color: var(--color-indigo-soft);
+}
+
+.legal code {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  border: 1px solid var(--color-line-soft);
+  border-radius: 0.25rem;
+  background: var(--color-panel-2);
+  padding: 0.1em 0.35em;
+}
+
+.legal table {
+  width: 100%;
+  margin: 0.75rem 0;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.legal th,
+.legal td {
+  border: 1px solid var(--color-line-soft);
+  padding: 0.5rem 0.65rem;
+  vertical-align: top;
+  text-align: left;
+}
+
+.legal th {
+  font-weight: 600;
+  color: var(--color-ink);
+  background: var(--color-panel-2);
+}
+
+.legal td {
+  color: var(--color-ink-dim);
+}
+
+.legal blockquote {
+  margin: 0.75rem 0;
+  border-left: 3px solid var(--color-indigo-soft);
+  padding: 0.35rem 0 0.35rem 0.9rem;
+  color: var(--color-ink-dim);
+  font-size: 0.9rem;
+  line-height: 1.7;
 }

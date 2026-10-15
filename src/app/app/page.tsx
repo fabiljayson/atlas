@@ -29,11 +29,21 @@ function useTodayLabel() {
 }
 
 export default function TodayPage() {
-  const { mails, events, tasks, checkins, toggleTask, markMailRead, openCheckin, syncGoogle } =
-    useStore();
+  const {
+    mails,
+    events,
+    tasks,
+    checkins,
+    toggleTask,
+    markMailRead,
+    openCheckin,
+    syncGoogle,
+    googleConnected,
+    disconnectGoogle,
+  } = useStore();
 
   const [googleState, setGoogleState] = useState<"unknown" | "connected" | "disconnected">(
-    "unknown",
+    googleConnected ? "connected" : "unknown",
   );
   const [syncing, setSyncing] = useState(false);
   const [googleMsg, setGoogleMsg] = useState<string | null>(null);
@@ -54,7 +64,7 @@ export default function TodayPage() {
   );
 
   useEffect(() => {
-    void runSync(true);
+    queueMicrotask(() => void runSync(true));
   }, [runSync]);
 
   useEffect(() => {
@@ -62,7 +72,7 @@ export default function TodayPage() {
     if (!flag) return;
     window.history.replaceState({}, "", "/app");
     if (flag === "connected") {
-      void runSync(false);
+      queueMicrotask(() => void runSync(false));
     } else if (flag === "not-configured") {
       queueMicrotask(() => setGoogleMsg("Google is not configured on this server."));
     } else {
@@ -125,7 +135,7 @@ export default function TodayPage() {
           <div className="flex items-center gap-2">
             {googleState === "connected" ? (
               <>
-                <span className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-ink-faint uppercase">
+                <span className="flex items-center gap-2 font-mono text-[10px] tracking-wider text-ink-faint uppercase">
                   <GoogleLogo size={12} />
                   Google
                 </span>
@@ -142,18 +152,27 @@ export default function TodayPage() {
                   <ArrowsClockwise size={13} className={syncing ? "animate-spin" : undefined} />
                   {syncing ? "Syncing" : "Sync"}
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    void disconnectGoogle().then(() => {
+                      setGoogleState("disconnected");
+                      setGoogleMsg("Google disconnected.");
+                    });
+                  }}
+                >
+                  Disconnect
+                </Button>
               </>
             ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  window.location.assign(`${window.location.origin}/api/google/connect`);
-                }}
+              <a
+                href="/api/google/connect"
+                className="inline-flex h-8 items-center justify-center gap-2 rounded-lg border border-line-strong bg-panel px-3 text-[13px] font-medium text-ink transition-all duration-fast hover:border-indigo hover:bg-panel-2 active:translate-y-px"
               >
                 <GoogleLogo size={13} />
                 Connect Google
-              </Button>
+              </a>
             )}
           </div>
           {googleMsg ? (
@@ -170,7 +189,7 @@ export default function TodayPage() {
             title="Now"
             meta="urgent + important"
             action={
-              <span className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-critical uppercase">
+              <span className="flex items-center gap-2 font-mono text-[10px] tracking-wider text-critical-ink uppercase">
                 <span className="h-1.5 w-1.5 rounded-full bg-critical anim-pulse-dot" />
                 Live
               </span>
@@ -180,7 +199,7 @@ export default function TodayPage() {
             {nowItems.map((item) => (
               <li
                 key={`${item.kind}-${item.id}`}
-                className="flex items-center gap-3 px-4 py-2.5"
+                className="flex items-center gap-3 px-4 py-3"
               >
                 <Lightning size={14} className="shrink-0 text-critical" />
                 <span className="min-w-0 flex-1 truncate text-[13px] text-ink">
@@ -211,38 +230,46 @@ export default function TodayPage() {
             }
           />
           <ul className="divide-y divide-line-soft">
-            {mails.map((m) => (
-              <li key={m.id}>
-                <button
-                  onClick={() => markMailRead(m.id)}
-                  className="block w-full px-4 py-3 text-left transition-colors hover:bg-panel-2/60"
-                >
-                  <div className="flex items-center gap-2">
-                    {m.unread ? (
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-indigo" />
-                    ) : (
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-transparent" />
-                    )}
-                    <span
-                      className={cn(
-                        "min-w-0 flex-1 truncate text-[13px]",
-                        m.unread ? "font-medium text-ink" : "text-ink-dim",
-                      )}
-                    >
-                      {m.from}
-                    </span>
-                    <span className="font-mono text-[10px] text-ink-faint">{m.time}</span>
-                    <UrgencyBadge level={m.urgency} />
-                  </div>
-                  <p className="mt-1 pl-3.5 text-[12.5px] leading-snug text-ink-dim">
-                    {m.subject}
-                  </p>
-                  <p className="mt-0.5 line-clamp-2 pl-3.5 text-[12px] leading-relaxed text-ink-faint">
-                    {m.preview}
-                  </p>
-                </button>
+            {mails.length === 0 ? (
+              <li className="px-4 py-6 text-[12.5px] text-ink-faint">
+                {googleState === "connected"
+                  ? "No recent mail in your inbox."
+                  : "Connect Google to bring your inbox in."}
               </li>
-            ))}
+            ) : (
+              mails.map((m) => (
+                <li key={m.id}>
+                  <button
+                    onClick={() => markMailRead(m.id)}
+                    className="block w-full px-4 py-3 text-left transition-colors hover:bg-panel-2/60"
+                  >
+                    <div className="flex items-center gap-2">
+                      {m.unread ? (
+                        <span className="h-2 w-2 shrink-0 rounded-full bg-indigo" />
+                      ) : (
+                        <span className="h-2 w-2 shrink-0 rounded-full bg-transparent" />
+                      )}
+                      <span
+                        className={cn(
+                          "min-w-0 flex-1 truncate text-[13px]",
+                          m.unread ? "font-medium text-ink" : "text-ink-dim",
+                        )}
+                      >
+                        {m.from}
+                      </span>
+                      <span className="font-mono text-[10px] text-ink-faint">{m.time}</span>
+                      <UrgencyBadge level={m.urgency} />
+                    </div>
+                    <p className="mt-1 pl-4 text-[12.5px] leading-snug text-ink-dim">
+                      {m.subject}
+                    </p>
+                    <p className="mt-1 line-clamp-2 pl-4 text-[12px] leading-relaxed text-ink-faint">
+                      {m.preview}
+                    </p>
+                  </button>
+                </li>
+              ))
+            )}
           </ul>
         </Panel>
 
@@ -257,31 +284,34 @@ export default function TodayPage() {
             }
           />
           <ul className="divide-y divide-line-soft">
-            {events.map((e) => (
-              <li key={e.id} className="flex gap-3 px-4 py-3">
-                <div className="w-24 shrink-0">
-                  <div className="font-mono text-[12px] text-ink">{e.start}</div>
-                  <div className="font-mono text-[10px] text-ink-faint">{e.end}</div>
-                </div>
-                <div className="min-w-0 flex-1 border-l border-line pl-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[13px] font-medium text-ink">{e.title}</span>
-                    <UrgencyBadge level={e.urgency} />
-                  </div>
-                  {e.location ? (
-                    <p className="mt-0.5 font-mono text-[10px] text-ink-faint">
-                      {e.location}
-                    </p>
-                  ) : null}
-                </div>
+            {events.length === 0 ? (
+              <li className="px-4 py-6 text-[12.5px] text-ink-faint">
+                {googleState === "connected"
+                  ? "Nothing scheduled today."
+                  : "Connect Google to see your calendar."}
               </li>
-            ))}
+            ) : (
+              events.map((e) => (
+                <li key={e.id} className="flex gap-3 px-4 py-3">
+                  <div className="w-24 shrink-0">
+                    <div className="font-mono text-[12px] text-ink">{e.start}</div>
+                    <div className="font-mono text-[10px] text-ink-faint">{e.end}</div>
+                  </div>
+                  <div className="min-w-0 flex-1 border-l border-line pl-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[13px] font-medium text-ink">{e.title}</span>
+                      <UrgencyBadge level={e.urgency} />
+                    </div>
+                    {e.location ? (
+                      <p className="mt-1 font-mono text-[10px] text-ink-faint">
+                        {e.location}
+                      </p>
+                    ) : null}
+                  </div>
+                </li>
+              ))
+            )}
           </ul>
-          <div className="mt-auto border-t border-line-soft px-4 py-3">
-            <p className="font-mono text-[10px] tracking-wider text-ink-faint uppercase">
-              Next free block 13:30 · Deep work
-            </p>
-          </div>
         </Panel>
 
         <div className="flex flex-col gap-4">
@@ -296,35 +326,43 @@ export default function TodayPage() {
               }
             />
             <ul className="divide-y divide-line-soft">
-              {tasks.map((t) => (
-                <li key={t.id}>
-                  <label className="flex cursor-pointer items-center gap-3 px-4 py-2.5 transition-colors hover:bg-panel-2/60">
-                    <input
-                      type="checkbox"
-                      checked={t.done}
-                      onChange={() => toggleTask(t.id)}
-                      className="h-3.5 w-3.5 shrink-0 accent-[#4f46e5]"
-                    />
-                    <span
-                      className={cn(
-                        "min-w-0 flex-1 truncate text-[13px]",
-                        t.done ? "text-ink-faint line-through" : "text-ink",
-                      )}
-                    >
-                      {t.title}
-                      {t.fromCheckin ? (
-                        <span className="ml-2 font-mono text-[9px] tracking-wide text-indigo uppercase">
-                          from check-in
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="shrink-0 font-mono text-[10px] text-ink-faint">
-                      {t.due}
-                    </span>
-                    <UrgencyBadge level={t.urgency} />
-                  </label>
+              {tasks.length === 0 ? (
+                <li className="px-4 py-6 text-[12.5px] text-ink-faint">
+                  {googleState === "connected"
+                    ? "No open tasks. Check-ins add tomorrow's plan here."
+                    : "Connect Google to bring in your tasks."}
                 </li>
-              ))}
+              ) : (
+                tasks.map((t) => (
+                  <li key={t.id}>
+                    <label className="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-panel-2/60">
+                      <input
+                        type="checkbox"
+                        checked={t.done}
+                        onChange={() => toggleTask(t.id)}
+                        className="h-3.5 w-3.5 shrink-0 accent-indigo"
+                      />
+                      <span
+                        className={cn(
+                          "min-w-0 flex-1 truncate text-[13px]",
+                          t.done ? "text-ink-faint line-through" : "text-ink",
+                        )}
+                      >
+                        {t.title}
+                        {t.fromCheckin ? (
+                          <span className="ml-2 font-mono text-[9px] tracking-wide text-indigo uppercase">
+                            from check-in
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="shrink-0 font-mono text-[10px] text-ink-faint">
+                        {t.due}
+                      </span>
+                      <UrgencyBadge level={t.urgency} />
+                    </label>
+                  </li>
+                ))
+              )}
             </ul>
           </Panel>
 
@@ -365,7 +403,7 @@ function Stat({
       <div
         className={cn(
           "font-mono text-lg leading-none",
-          tone === "critical" && "text-critical",
+          tone === "critical" && "text-critical-ink",
           tone === "normal" && "text-indigo",
           tone === "neutral" && "text-ink",
         )}

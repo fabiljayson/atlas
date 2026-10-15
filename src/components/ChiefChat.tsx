@@ -37,24 +37,24 @@ export function ChiefChat({ compact = false }: { compact?: boolean }) {
           >
             <div
               className={cn(
-                "max-w-[85%] rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap",
+                "max-w-[85%] rounded-xl px-4 py-3 text-[13px] leading-relaxed whitespace-pre-wrap",
                 m.role === "user"
-                  ? "bg-indigo-deep text-white"
+                  ? "bg-indigo text-white"
                   : "border border-line bg-panel-2 text-ink-dim",
               )}
             >
               {m.role === "chief" ? (
-                <div className="mb-1.5 font-mono text-[10px] tracking-wider text-indigo uppercase">
+                <div className="mb-2 font-mono text-[10px] tracking-wider text-indigo uppercase">
                   Chief of staff
                 </div>
               ) : null}
               {m.text}
               {m.sources?.length ? (
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <div className="mt-2 flex flex-wrap gap-2">
                   {m.sources.map((s) => (
                     <span
                       key={s}
-                      className="rounded border border-line bg-bg px-1.5 py-0.5 font-mono text-[10px] text-ink-faint"
+                      className="rounded border border-line bg-bg px-2 py-1 font-mono text-[10px] text-ink-faint"
                     >
                       {s}
                     </span>
@@ -65,7 +65,7 @@ export function ChiefChat({ compact = false }: { compact?: boolean }) {
           </div>
         ))}
         {chatThinking ? (
-          <div className="flex items-center gap-1.5 px-1">
+          <div className="flex items-center gap-2 px-1">
             {[0, 1, 2].map((i) => (
               <span
                 key={i}
@@ -80,12 +80,12 @@ export function ChiefChat({ compact = false }: { compact?: boolean }) {
       </div>
 
       <div className="border-t border-line-soft px-4 pt-3 pb-4">
-        <div className="mb-2 flex flex-wrap gap-1.5">
+        <div className="mb-2 flex flex-wrap gap-2">
           {QUICK.map((q) => (
             <button
               key={q}
               onClick={() => submit(q)}
-              className="rounded-full border border-line bg-panel px-2.5 py-1 font-mono text-[10px] text-ink-dim transition-colors hover:border-[#2a3358] hover:text-ink"
+              className="rounded-full border border-line-strong bg-panel px-3 py-1 font-mono text-[10px] text-ink-dim transition-colors hover:border-indigo hover:text-ink"
             >
               {q}
             </button>
@@ -103,13 +103,13 @@ export function ChiefChat({ compact = false }: { compact?: boolean }) {
             onChange={(e) => setValue(e.target.value)}
             placeholder="Ask your chief of staff…"
             aria-label="Message the chief of staff"
-            className="h-10 flex-1 rounded-lg border border-line bg-bg px-3 text-sm text-ink placeholder:text-ink-faint focus:border-[#35407a] focus:outline-none"
+            className="h-10 flex-1 rounded-lg border border-line-strong bg-bg px-3 text-sm text-ink placeholder:text-ink-faint focus:border-indigo"
           />
           <button
             type="submit"
             disabled={!value.trim() || chatThinking}
             aria-label="Send"
-            className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-deep text-white transition-all active:translate-y-px disabled:opacity-40"
+            className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo text-white transition-all hover:bg-indigo-deep active:translate-y-px disabled:opacity-40"
           >
             <PaperPlaneTilt size={16} />
           </button>

@@ -1,19 +1,11 @@
 import { DatabaseSync } from "node:sqlite";
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import path from "node:path";
-import {
-  CHECKINS,
-  EVENTS,
-  FILES,
-  MAILS,
-  NOTIFICATIONS,
-  OBJECTIVES,
-  TASKS,
-  WELCOME_CHAT,
-} from "./data";
+import { WELCOME_MESSAGE } from "./chief";
 import { PERSISTED_SLICES, type PersistedState } from "./types";
 
-const DB_PATH = path.join(process.cwd(), "atlas.db");
+// Overridable so tests can run against a throwaway database file.
+const DB_PATH = process.env.ATLAS_DB_PATH || path.join(process.cwd(), "atlas.db");
 
 interface UserRow {
   id: number;
@@ -32,6 +24,7 @@ function getDb(): DatabaseSync {
     const db = new DatabaseSync(DB_PATH);
     db.exec(`
       PRAGMA journal_mode = WAL;
+      PRAGMA foreign_keys = ON;
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -169,14 +162,14 @@ function sha256(value: string): string {
 
 function defaultState(): PersistedState {
   return {
-    mails: MAILS,
-    events: EVENTS,
-    tasks: TASKS,
-    objectives: OBJECTIVES,
-    files: FILES,
-    checkins: CHECKINS,
-    notifications: NOTIFICATIONS,
-    chat: WELCOME_CHAT,
+    mails: [],
+    events: [],
+    tasks: [],
+    objectives: [],
+    files: [],
+    checkins: [],
+    notifications: [],
+    chat: [WELCOME_MESSAGE],
     drafts: [],
   };
 }
@@ -267,4 +260,33 @@ export function loadGoogleTokens(userId: number): GoogleTokens | null {
 
 export function deleteGoogleTokens(userId: number): void {
   getDb().prepare("DELETE FROM google_tokens WHERE user_id = ?").run(userId);
+}
+
+/**
+ * Delete every record belonging to a user, in one transaction.
+ *
+ * The users row is removed last; FK cascades are supplemented by explicit
+ * deletes so the operation does not depend on the foreign_keys pragma being
+ * enabled. Repeated calls for a missing user are a safe no-op.
+ */
+export function deleteUserAccount(userId: number): boolean {
+  const db = getDb();
+  const exists = db.prepare("SELECT id FROM users WHERE id = ?").get(userId);
+  if (!exists) return false;
+
+  db.exec("BEGIN");
+  try {
+    const del = (table: string, column: string): void => {
+      db.prepare(`DELETE FROM ${table} WHERE ${column} = ?`).run(userId);
+    };
+    del("sessions", "user_id");
+    del("user_state", "user_id");
+    del("google_tokens", "user_id");
+    del("users", "id");
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+  return true;
 }

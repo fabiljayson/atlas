@@ -75,6 +75,23 @@ export default function SignupPage() {
           {loading ? <Spinner size={15} className="animate-spin" /> : null}
           {loading ? "Creating…" : "Create my Atlas"}
         </Button>
+        <p className="text-[12px] leading-relaxed text-ink-dim">
+          By creating an account you agree to the{" "}
+          <Link href="/terms" className="text-indigo hover:underline">
+            terms of use
+          </Link>{" "}
+          and acknowledge the{" "}
+          <Link href="/privacy" className="text-indigo hover:underline">
+            privacy policy
+          </Link>
+          . Atlas collects only your name, email and password here. No marketing emails are
+          sent, and the only cookie is the login session (no analytics or advertising). See
+          the{" "}
+          <Link href="/cookies" className="text-indigo hover:underline">
+            cookie policy
+          </Link>
+          . Atlas is intended for people aged 16 and over.
+        </p>
       </form>
     </AuthShell>
   );

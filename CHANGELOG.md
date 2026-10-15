@@ -1,55 +1,44 @@
 # Changelog
 
-All notable changes to Atlas are documented here.
+## 0.3.0 — Trust & compliance pass (October 2026)
 
-Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [0.2.0] - 2026-10-15
-
-Persistence, rate limiting and an LLM-ready chief of staff.
+Legal transparency, privacy controls, ethical UX and accessibility work per the compliance
+requirement list. Honest-state rule in effect: legal pages ship with clearly marked
+placeholders, not invented business details, and `docs/LEGAL_COMPLIANCE.md` is the single
+status sheet for all 20 requirements.
 
 ### Added
-
-- **Per-user persistence** — tasks, mails, events, objectives, files, check-ins, notifications, chat and drafts are stored per account in a new `user_state` table. The store hydrates from the server on login and saves debounced (500 ms) via `PUT /api/state`.
-- **`GET/PUT /api/state`** — authenticated endpoints that validate the slice whitelist, array shape and a 2 MB cap before merging into the stored state.
-- **AI chief of staff** — `POST /api/chief` runs server-side: with `GEMINI_API_KEY`, `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` set it calls the LLM (15 s timeout, tried in order, any failure falls through), otherwise falls back to the deterministic rules engine. The chat now streams through this endpoint; the rules engine remains as the client-side network-error fallback. Default Gemini model: `gemini-3.1-flash-lite`. See `.env.example`.
-- **Login rate limiting** — in-memory throttling per IP (20 failures / 15 min) and per account (5 failures / 15 min) on `POST /api/auth/login`, returning `429` with `Retry-After`. Successful logins clear the account counter. Signups are limited to 10 per IP per hour.
-- `.env.example` documenting the optional LLM and Google OAuth keys; `.gitignore` now allows committing it.
+- **Account deletion, end to end.** Settings page (`/app/settings`) with a danger-zone dialog
+  spelling out every consequence; deletion requires the current password (reauthentication)
+  plus an explicit acknowledgment. Server route `POST /api/account/delete` is rate limited
+  (separate buckets from login) and removes sessions, dashboard state, Google tokens and the
+  user row in one SQLite transaction — every session on every device dies instantly.
+- **Settings page** (`/app/settings`): account summary, Google connection status with
+  token-disconnect, danger zone. New `Sliders` nav entry in the shell.
+- **Legal pages** (all prerendered, linked from landing footer): `/legal` (mentions légales
+  with placeholders), `/privacy` (real data processing described: categories, purposes, legal
+  bases, retention, recipients, AI providers, transfers, rights), `/terms` (CGU style, CGV
+  marked not applicable), `/cookies` (exact cookie inventory).
+- **Compliance documentation**: `docs/LEGAL_COMPLIANCE.md` (20-requirement status sheet + open
+  legal questions), `docs/PRIVACY_DATA_MAP.md` (field-level inventory), `docs/THIRD_PARTY_SERVICES.md`
+  (active vs dormant integrations), `docs/ASSET_LICENSES.md` (Geist/JetBrains Mono OFL, Phosphor
+  MIT, logo), `docs/ACCESSIBILITY.md`.
+- **Tests** (`npm run test`): node:test suite covering account deletion — full record removal,
+  session revocation, other-user isolation, idempotent repeat deletion.
+- Skip-to-content links (landing, dashboard, legal pages) and a Settings nav entry.
 
 ### Changed
+- Signup form now discloses data collection purpose next to the submit button and links terms,
+  privacy and cookie policy. States the 16+ age guideline. No marketing consent exists, so none
+  is simulated.
+- Theme token `--color-ink-faint` darkened #5c5b85 → #54537b: worst measured text ratio vs
+  `indigo-soft` backgrounds went from 4.28:1 to 4.85:1 (now AA everywhere).
+- Notification bell accessible name announces the unread count ("Notifications, N unread")
+  instead of relying on the color dot alone.
+- `README`, `ARCHITECTURE`, `SECURITY` updated to match (settings route, deletion flow, routes
+  table, limitations table additions).
 
-- First login after signup seeds the user's state from the welcome data, so a new account starts from the same world the demo account shows.
-- The chief chat no longer waits an artificial 900 ms before answering.
-
-### Fixed
-
-- Dates and "today" labels no longer break prerendering (`useSyncExternalStore` instead of `new Date()` in render paths).
-
-### Known limitations
-
-- Gmail/Calendar sync is scaffolded but inert until Google OAuth credentials are provided.
-- Rate limiting is in-memory (single process); move to a shared store before multi-instance deploys.
-- No password reset or email verification yet (see `docs/SECURITY.md`).
-
-## [0.1.0] - 2026-10-15
-
-First release: landing, accounts and the full five-pillar prototype.
-
-### Added
-
-- **Today dashboard** — mail, calendar and tasks unified and classified by urgency, with a live "Now" strip and stat tiles.
-- **Second brain** — folder tree, file previews with summaries/excerpts/tags, "AI organize" that files unsorted Inbox items, Q&A chat citing source files.
-- **Evening check-in** — what worked / what stuck / what tomorrow, saved as a check-in, a dashboard task and a notification.
-- **Content studio** — brand panel (logo, indigo/grey palette, Geist + JetBrains Mono, voice rules), three card styles, post + newsletter previews, "Create content" generation flow.
-- **Objectives** — goals with key-result progress, "New objective" creation, and the chief-of-staff chat (search, write, read) fed by the top-bar search.
-- **Landing page** at `/` with live product previews of each pillar.
-- **Accounts** — signup (`/signup`), login (`/login`), logout; SQLite persistence (`atlas.db`), scrypt password hashing, hashed session tokens in HttpOnly cookies.
-- **Route protection** — `src/proxy.ts` cookie gate plus database-backed session validation in the app layout.
-- **Design system** — dark indigo/grey tokens on Tailwind v4 `@theme`, self-hosted Geist and JetBrains Mono, Phosphor icons, motion with `prefers-reduced-motion` support.
-- Documentation: README, Architecture, Security, Contributing, Changelog, Agents; MIT license.
-
-### Known limitations
-
-- Dashboard content was mock-only in this release; per-user persistence landed in 0.2.0.
-- No rate limiting, password reset or email verification yet (see `docs/SECURITY.md`). Rate limiting landed in 0.2.0.
+### Not applicable (documented in `docs/LEGAL_COMPLIANCE.md`)
+- Cookie consent banner: zero optional storage exists to consent to; banner precondition set.
+- CGV, withdrawal rights, hidden fees: no paid plans and no billing code anywhere.
+- Unsubscribe link: no marketing email is sent; no fake footer either.

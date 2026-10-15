@@ -45,8 +45,8 @@ export default function StudioPage() {
             <PanelHeader title="Brand" meta="locked to theme" />
             <div className="space-y-4 px-4 py-4">
               <div className="flex items-center gap-3">
-                <svg viewBox="0 0 40 40" className="h-10 w-10" aria-label="Logo mark">
-                  <rect width="40" height="40" rx="10" fill="#4F46E5" />
+                <svg viewBox="0 0 40 40" className="h-10 w-10 text-indigo" aria-label="Logo mark">
+                  <rect width="40" height="40" rx="10" fill="currentColor" />
                   <path
                     d="M12 30 L20 10 L28 30 M15.2 23.5 H24.8"
                     stroke="white"
@@ -66,16 +66,16 @@ export default function StudioPage() {
                 <div className="mb-2 font-mono text-[10px] tracking-wider text-ink-faint uppercase">
                   Colors
                 </div>
-                <div className="grid grid-cols-4 gap-1.5">
+                <div className="grid grid-cols-4 gap-2">
                   {[
                     { hex: "#4F46E5", name: "Indigo" },
-                    { hex: "#818CF8", name: "Soft" },
-                    { hex: "#151B33", name: "Surface" },
-                    { hex: "#0A0D17", name: "Ink bg" },
+                    { hex: "#C7D2FE", name: "Soft" },
+                    { hex: "#EEF2FF", name: "Surface" },
+                    { hex: "#1E1B4B", name: "Ink" },
                   ].map((c) => (
                     <div key={c.hex} className="text-center">
                       <div
-                        className="h-9 rounded-md border border-line"
+                        className="h-9 rounded border border-line"
                         style={{ background: c.hex }}
                       />
                       <div className="mt-1 font-mono text-[8.5px] text-ink-faint">
@@ -87,21 +87,21 @@ export default function StudioPage() {
               </div>
 
               <div>
-                <div className="mb-1.5 font-mono text-[10px] tracking-wider text-ink-faint uppercase">
+                <div className="mb-2 font-mono text-[10px] tracking-wider text-ink-faint uppercase">
                   Type
                 </div>
                 <div className="rounded-lg border border-line bg-bg px-3 py-2">
                   <div className="text-[15px] font-medium text-ink">Geist</div>
                   <div className="text-[11px] text-ink-faint">Headlines & UI</div>
                 </div>
-                <div className="mt-1.5 rounded-lg border border-line bg-bg px-3 py-2">
+                <div className="mt-2 rounded-lg border border-line bg-bg px-3 py-2">
                   <div className="font-mono text-[14px] text-ink">JetBrains Mono</div>
                   <div className="text-[11px] text-ink-faint">Data & labels</div>
                 </div>
               </div>
 
               <div>
-                <div className="mb-1.5 font-mono text-[10px] tracking-wider text-ink-faint uppercase">
+                <div className="mb-2 font-mono text-[10px] tracking-wider text-ink-faint uppercase">
                   Voice
                 </div>
                 <p className="text-[12.5px] leading-relaxed text-ink-dim">
@@ -121,8 +121,8 @@ export default function StudioPage() {
                   key={k}
                   onClick={() => setKind(k)}
                   className={cn(
-                    "flex-1 rounded-md py-1.5 text-[12.5px] font-medium transition-colors",
-                    kind === k ? "bg-panel-2 text-ink" : "text-ink-faint hover:text-ink-dim",
+                    "flex-1 rounded py-2 text-[12.5px] font-medium transition-colors",
+                    kind === k ? "bg-indigo-soft text-ink" : "text-ink-faint hover:text-ink-dim",
                   )}
                 >
                   {k === "post" ? "Post" : "Newsletter"}
@@ -131,8 +131,8 @@ export default function StudioPage() {
             </div>
 
             <div>
-              <div className="mb-1.5 text-[12px] font-medium text-ink-dim">Card style</div>
-              <div className="space-y-1.5">
+              <div className="mb-2 text-[12px] font-medium text-ink-dim">Card style</div>
+              <div className="space-y-2">
                 {STYLES.map((s) => (
                   <button
                     key={s.id}
@@ -140,12 +140,12 @@ export default function StudioPage() {
                     className={cn(
                       "flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors",
                       style === s.id
-                        ? "border-[#35407a] bg-panel-2"
-                        : "border-line hover:border-[#2a3358]",
+                        ? "border-indigo bg-indigo-soft"
+                        : "border-line-strong hover:border-indigo",
                     )}
                   >
                     <span className="text-[13px] text-ink">{s.label}</span>
-                    <span className="font-mono text-[10px] text-ink-faint">{s.hint}</span>
+                    <span className="font-mono text-[10px] text-ink-dim">{s.hint}</span>
                   </button>
                 ))}
               </div>
@@ -169,10 +169,10 @@ export default function StudioPage() {
                 pushNotification({
                   kind: "content",
                   title: "Draft copied",
-                  body: "Text copied to clipboard (demo).",
+                  body: "Text copied to clipboard.",
                 })
               }
-              className="flex w-full items-center justify-center gap-1.5 py-1 font-mono text-[10px] tracking-wider text-ink-faint uppercase transition-colors hover:text-ink-dim"
+              className="flex w-full items-center justify-center gap-2 py-1 font-mono text-[10px] tracking-wider text-ink-faint uppercase transition-colors hover:text-ink-dim"
             >
               <Copy size={11} />
               Copy last draft
@@ -185,7 +185,7 @@ export default function StudioPage() {
             title="Preview"
             meta={draft ? `${draft.style} · ${draft.kind}` : "no draft yet"}
           />
-          <div className="px-4 py-5">
+          <div className="px-4 py-6">
             {draft ? (
               <div className="space-y-4">
                 <PreviewCard draft={draft} />
@@ -193,8 +193,8 @@ export default function StudioPage() {
               </div>
             ) : (
               <div className="flex min-h-[320px] flex-col items-center justify-center rounded-xl border border-dashed border-line px-6 text-center">
-                <svg viewBox="0 0 40 40" className="mb-3 h-9 w-9 opacity-60">
-                  <rect width="40" height="40" rx="10" fill="#4F46E5" />
+                <svg viewBox="0 0 40 40" className="mb-3 h-9 w-9 text-indigo opacity-60">
+                  <rect width="40" height="40" rx="10" fill="currentColor" />
                   <path
                     d="M12 30 L20 10 L28 30 M15.2 23.5 H24.8"
                     stroke="white"
@@ -219,7 +219,7 @@ export default function StudioPage() {
 function PreviewCard({ draft }: { draft: ContentDraft }) {
   if (draft.style === "signal") {
     return (
-      <article className="anim-fade-up rounded-2xl bg-indigo-deep p-7 text-white">
+      <article className="anim-fade-up rounded-xl bg-indigo p-6 text-white">
         <div className="flex items-center justify-between">
           <svg viewBox="0 0 40 40" className="h-6 w-6">
             <rect width="40" height="40" rx="10" fill="white" fillOpacity="0.15" />
@@ -231,7 +231,7 @@ function PreviewCard({ draft }: { draft: ContentDraft }) {
               fill="none"
             />
           </svg>
-          <span className="font-mono text-[10px] tracking-[0.2em] uppercase opacity-70">
+          <span className="font-mono text-[10px] tracking-[0.2em] uppercase opacity-80">
             {draft.kicker}
           </span>
         </div>
@@ -241,7 +241,7 @@ function PreviewCard({ draft }: { draft: ContentDraft }) {
         <p className="mt-3 max-w-[46ch] text-[13.5px] leading-relaxed opacity-85">
           {draft.body}
         </p>
-        <div className="mt-6 border-t border-white/20 pt-3 font-mono text-[10px] tracking-wider uppercase opacity-70">
+        <div className="mt-6 border-t border-white/20 pt-3 font-mono text-[10px] tracking-wider uppercase opacity-80">
           Atlas · keep the calm
         </div>
       </article>
@@ -250,10 +250,10 @@ function PreviewCard({ draft }: { draft: ContentDraft }) {
 
   if (draft.style === "minimal") {
     return (
-      <article className="anim-fade-up rounded-2xl border border-line bg-bg p-6">
+      <article className="anim-fade-up rounded-xl border border-line bg-bg p-6">
         <div className="flex items-center justify-between">
-          <svg viewBox="0 0 40 40" className="h-5 w-5">
-            <rect width="40" height="40" rx="10" fill="#4F46E5" />
+          <svg viewBox="0 0 40 40" className="h-5 w-5 text-indigo">
+            <rect width="40" height="40" rx="10" fill="currentColor" />
             <path
               d="M12 30 L20 10 L28 30 M15.2 23.5 H24.8"
               stroke="white"
@@ -270,15 +270,15 @@ function PreviewCard({ draft }: { draft: ContentDraft }) {
         <p className="mt-2 max-w-[52ch] text-[13px] leading-relaxed text-ink-dim">
           {draft.body}
         </p>
-        <div className="mt-5 h-px bg-line" />
+        <div className="mt-6 h-px bg-line" />
         <div className="mt-2 font-mono text-[10px] text-ink-faint">atlas.dashboard</div>
       </article>
     );
   }
 
   return (
-    <article className="anim-fade-up overflow-hidden rounded-2xl border border-line bg-panel-2">
-      <div className="border-b border-line px-7 pt-7 pb-4">
+    <article className="anim-fade-up overflow-hidden rounded-xl border border-line bg-panel-2">
+      <div className="border-b border-line px-6 pt-6 pb-4">
         <span className="font-mono text-[10px] tracking-[0.22em] text-indigo uppercase">
           {draft.kicker}
         </span>
@@ -286,9 +286,9 @@ function PreviewCard({ draft }: { draft: ContentDraft }) {
           {draft.headline}
         </h3>
       </div>
-      <div className="px-7 py-5">
+      <div className="px-6 py-6">
         <p className="max-w-[54ch] text-[14px] leading-relaxed text-ink-dim">{draft.body}</p>
-        <div className="mt-5 flex items-center justify-between border-t border-line pt-3">
+        <div className="mt-6 flex items-center justify-between border-t border-line pt-3">
           <span className="text-[12px] font-medium text-ink">Atlas</span>
           <span className="font-mono text-[10px] text-ink-faint">
             {new Date().toLocaleDateString([], { month: "short", day: "numeric" })}
@@ -306,9 +306,9 @@ function NewsletterPreview({ draft }: { draft: ContentDraft }) {
         Email frame
       </div>
       <div className="overflow-hidden rounded-xl border border-line bg-bg">
-        <div className="flex items-center gap-2 border-b border-line px-5 py-3">
-          <svg viewBox="0 0 40 40" className="h-4 w-4">
-            <rect width="40" height="40" rx="10" fill="#4F46E5" />
+        <div className="flex items-center gap-2 border-b border-line px-6 py-3">
+          <svg viewBox="0 0 40 40" className="h-4 w-4 text-indigo">
+            <rect width="40" height="40" rx="10" fill="currentColor" />
             <path
               d="M12 30 L20 10 L28 30 M15.2 23.5 H24.8"
               stroke="white"
@@ -320,13 +320,13 @@ function NewsletterPreview({ draft }: { draft: ContentDraft }) {
           <span className="text-[12px] font-semibold text-ink">Atlas Weekly</span>
           <span className="ml-auto font-mono text-[10px] text-ink-faint">Issue 05</span>
         </div>
-        <div className="px-5 py-6">
-          <div className="h-0.5 w-10 bg-indigo-deep" />
+        <div className="px-6 py-6">
+          <div className="h-0.5 w-10 bg-indigo" />
           <h4 className="mt-4 text-[20px] leading-tight font-semibold text-ink">
             {draft.headline}
           </h4>
           <p className="mt-3 text-[13.5px] leading-relaxed text-ink-dim">{draft.body}</p>
-          <button className="mt-5 rounded-lg bg-indigo-deep px-4 py-2 text-[12.5px] font-medium text-white">
+          <button className="mt-6 rounded-lg bg-indigo px-4 py-2 text-[12.5px] font-medium text-white">
             Read the full issue
           </button>
           <div className="mt-6 border-t border-line pt-3 text-[11px] text-ink-faint">

@@ -46,9 +46,12 @@ Atlas is a single Next.js application with a thin server edge (auth) and a rich 
 | `/` landing | Static (prerendered) | public |
 | `/login`, `/signup` | Static | public |
 | `/app/*` | Partial Prerender: static shell + streamed auth + state | `proxy.ts` then layout |
+| `/app/settings` | Partial Prerender: static shell + streamed session data | `proxy.ts` then layout |
+| `/legal` `/privacy` `/terms` `/cookies` | Static (prerendered) | public |
 | `/api/auth/*` | Dynamic (Node) | public (validates credentials; rate limited) |
 | `/api/state` | Dynamic (Node) | session cookie required |
 | `/api/chief` | Dynamic (Node) | session cookie required |
+| `/api/account/delete` | Dynamic (Node) | session cookie + password reauthentication (rate limited) |
 
 `cacheComponents: true` is enabled. Anything touching cookies or the database must happen either inside a `<Suspense>` boundary (see `app/app/layout.tsx`) or in a route handler; static exports reject direct dynamic access at build time.
 
@@ -59,12 +62,12 @@ Two guards are deliberately redundant:
 
 ### 2. Client state (`src/lib/store.tsx`)
 
-A single React context (`StoreProvider`) owns all dashboard state: tasks, mails, files, objectives, check-ins, notifications, chat and drafts. Actions (`toggleTask`, `submitCheckin`, `arrangeInbox`, `sendChat`…) live alongside state so pages stay declarative.
+A single React context (`StoreProvider`) owns all dashboard state: tasks, mails, files, objectives, check-ins, notifications, chat and drafts. Actions (`toggleTask`, `submitCheckin`, `sendChat`…) live alongside state so pages stay declarative. No mock seed data exists: arrays start empty (plus the chief's greeting in chat) and are filled by Google sync or user actions.
 
 Boundaries:
 
 - **Auth state is NOT in the store.** It is server-owned (cookie + layout).
-- **State is hydrated from the database on login.** `app/app/layout.tsx` calls `getOrCreateUserState(user.id)` (seeding the welcome data on first access) and passes it to `StoreProvider`. Every mutation is saved back with a 500 ms debounce via `PUT /api/state`; the first render after hydration is skipped so seeding never overwrites stored data.
+- **State is hydrated from the database on login.** `app/app/layout.tsx` calls `getOrCreateUserState(user.id)` (seeding an empty state with the chief's greeting on first access) and passes it to `StoreProvider` along with the account's Google connection status. Every mutation is saved back with a 500 ms debounce via `PUT /api/state`; the first render after hydration is skipped so seeding never overwrites stored data.
 - **Persistence is a slice whitelist.** Only arrays named in `PERSISTED_SLICES` (`lib/types.ts`) round-trip; unknown keys are dropped server-side, keeping the schema honest as the store grows.
 
 ### 3. Intelligence (`src/lib/chief.ts`, `src/lib/askChief.ts`, `api/chief`)
@@ -82,6 +85,14 @@ Two layers behind one endpoint:
   - `users` (id, name, email unique nocase, password_hash, salt)
   - `sessions` (token_hash PK, user_id FK, expires_at)
   - `user_state` (user_id, slice, data JSON, updated_at; PK user_id+slice)
+  - `google_tokens` (user_id PK, access_token, refresh_token, expires_at, scope)
+
+`PRAGMA foreign_keys = ON` is set on connect. Deletion: `deleteUserAccount(userId)` removes
+`sessions` → `user_state` → `google_tokens` → `users` in one transaction (explicit deletes,
+so it never relies on cascade), is a no-op for missing users, and is the single path behind
+`POST /api/account/delete` (password reauthentication + separate rate-limit buckets, set in
+the settings UI behind an acknowledgment dialog). Tests: `tests/account-deletion.test.ts`
+(node:test + tsx, throwaway DB via `ATLAS_DB_PATH`).
 - Passwords: `scrypt(password, random 16-byte salt, 64)` stored hex; compared with `timingSafeEqual`.
 - Sessions: 32-byte random token given to the client, stored **SHA-256 hashed**; expiry 30 days; deletion = revocation.
 - State: `loadUserState` / `saveUserState` / `getOrCreateUserState` in `lib/db.ts`. Saves are transactional (`BEGIN`/`COMMIT`, `ROLLBACK` on error) batched upserts across the slice whitelist.
@@ -101,13 +112,11 @@ Tailwind v4 `@theme` tokens (no config file): colors `bg / panel / panel-2 / lin
 
 **Evening check-in:** modal in Shell → `submitCheckin` in store → new check-in + tomorrow task + notification → saved like any other slice → surfaces on Today page and the bell.
 
-**File arrangement:** Brain page → `arrangeInbox` → store moves `Inbox` files folder-by-folder with a delay per file (visible filing) → notification.
-
 ## Extension points
 
 | To add | Touch |
 |---|---|
-| Real Gmail/Calendar | OAuth route handlers + a server sync module; write results into `user_state` slices (needs `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`) |
+| Google sources (Gmail, Calendar, Tasks, Drive) | Wired: `lib/google.ts` fetchers + `/api/google/*` + `/api/sync`; needs `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` and a reconnect so new scopes are granted |
 | Brand settings screen | Studio's brand panel reads from a new store slice instead of literals |
 | Shared rate-limit store | Replace the Map in `lib/rateLimit.ts` with a Redis/Upstash client; the call sites stay identical |
 | Password reset / email verification | New token tables + mail sender; see `docs/SECURITY.md` roadmap |

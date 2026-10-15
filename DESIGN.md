@@ -5,23 +5,23 @@ description: "Framework-agnostic design rules for web and mobile app implementat
 # ─── Colors ───────────────────────────────────────────────
 colors:
   # Brand
-  primary:       "#4f46e5"
-  primaryStrong: "#312e81"
-  primarySoft:   "#c7d2fe"
-  accent:        "#4f46e5"
+  primary:       "#5d60ee"
+  primaryStrong: "#4749c9"
+  primarySoft:   "#a9abf6"
+  accent:        "#5d60ee"
 
   # Surfaces
-  surface:       "#eef2ff"
-  surfaceMuted:  "#c7d2fe"
+  surface:       "#0b0d16"
+  surfaceMuted:  "#131626"
 
   # Text & Border
-  text:          "#1e1b4b"
-  border:        "#3730a3"
+  text:          "#edf0fb"
+  border:        "#3d4463"
 
   # Feedback
-  success:       "#16A34A"
-  warning:       "#D97706"
-  danger:        "#DC2626"
+  success:       "#22C55E"
+  warning:       "#F59E0B"
+  danger:        "#EF4444"
 
 # ─── Typography ───────────────────────────────────────────
 typography:
@@ -182,25 +182,24 @@ Use Glassmorphism to create a frosted interface where translucent panels, blurre
 Use semantic tokens first. Raw values from frontmatter are source values, not permission to scatter hex codes or one-off sizes through implementation.
 
 ### Color
-- Primary action color: #4f46e5.
-- Strong primary: #312e81. Use for high-emphasis text, selected state, or strong borders.
-- Soft primary: #c7d2fe. Use for subtle surfaces, selected backgrounds, or calm highlights.
-- Surface: #eef2ff.
-- Muted surface: #c7d2fe.
-- Text: #1e1b4b.
-- Border: #3730a3.
+- Primary action color: #5d60ee.
+- Strong primary: #4749c9. Use for hover states, selected state, or strong borders.
+- Soft primary: #a9abf6. Use for subtle accents, selected backgrounds, or calm highlights.
+- Surface: #0b0d16.
+- Muted surface: #131626.
+- Text: #edf0fb.
+- Border: #3d4463.
 - Success, warning, and danger are semantic states. Pair them with labels, icons, or position; never rely on color alone.
-- When moving from a dark theme to a light or warm theme, update inherited light text classes such as white, muted-white, or low-opacity foregrounds.
+- This is a dark-only theme. Do not introduce light surfaces or cream palettes.
 - Do not apply one warm/cream/brown palette across the entire page without contrast, hierarchy, and content anchors.
 
 ### Text Selection
 - Use this style-specific `::selection` treatment for Glassmorphism. It should follow the selected color tokens and stay readable.
 ```css
-/* Glassmorphism selection: frosted tint. */
+/* Glassmorphism selection: soft indigo tint on dark. */
 ::selection {
-  background-color: #c7d2fe;
-  color: #1e1b4b;
-  text-shadow: 0 1px 14px #eef2ff;
+  background-color: #a9abf6;
+  color: #14162a;
 }
 ```
 - If the selected color changes, keep the same style behavior but re-check text/background contrast.
